@@ -1,0 +1,7 @@
+{
+  "name": " Weather Forecast",
+  "description": "Get the latest 5-day weather forecast for any city using AI.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}

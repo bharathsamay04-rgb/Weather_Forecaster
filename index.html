@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-g" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Weather Forecast</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="index.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/genai": "https://esm.sh/@google/genai@^0.7.0"
+        }
+      }
+    </script>
+    <script type="module" src="gemini.service.tsx"></script>
+    <script type="module" src="index.tsx"></script>
+  </head>
+  <body class="show-home">
+    <!-- SVG Icon Definitions -->
+    <svg style="display: none">
+      <defs>
+        <symbol id="icon-sun" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="5" fill="var(--icon-sun-color)" />
+          <line
+            x1="12"
+            y1="1"
+            x2="12"
+            y2="3"
+            stroke="var(--icon-sun-color)"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+          <line
+            x1="12"
+            y1="21"
+            x2="12"
+            y2="23"
+            stroke="var(--icon-sun-color)"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+          <line
+            x1="4.22"
+            y1="4.22"
+            x2="5.64"
+            y2="5.64"
+            stroke="var(--icon-sun-color)"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+          <line
+            x1="18.36"
+            y1="18.36"
+            x2="19.78"
+            y2="19.78"
+            stroke="var(--icon-sun-color)"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+          <line
+            x1="1"
+            y1="12"
+            x2="3"
+            y2="12"
+            stroke="var(--icon-sun-color)"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+          <line
+            x1="21"
+            y1="12"
+            x2="23"
+            y2="12"
+            stroke="var(--icon-sun-color)"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+          <line
+            x1="4.22"
+            y1="19.78"
+            x2="5.64"
+            y2="18.36"
+            stroke="var(--icon-sun-color)"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+          <line
+            x1="18.36"
+            y1="5.64"
+            x2="19.78"
+            y2="4.22"
+            stroke="var(--icon-sun-color)"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+        </symbol>
+        <symbol id="icon-cloud" viewBox="0 0 24 24">
+          <path
+            class="cloud cloud-overcast"
+            d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"
+          ></path>
+        </symbol>
+        <symbol id="icon-cloud-sun" viewBox="0 0 24 24">
+          <path
+            class="cloud cloud-sunny"
+            d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"
+          ></path>
+          <circle
+            cx="12"
+            cy="10"
+            r="4"
+            fill="var(--icon-sun-color)"
+          />
+        </symbol>
+        <symbol id="icon-rain" viewBox="0 0 24 24">
+          <path
+            class="cloud cloud-rainy"
+            d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"
+          ></path>
+          <path class="rain-drop rain-drop1" stroke="var(--icon-rain-color)" stroke-width="1.5" stroke-linecap="round" d="m10 18 l-1.5 6"></path>
+          <path class="rain-drop rain-drop2" stroke="var(--icon-rain-color)" stroke-width="1.5" stroke-linecap="round" d="m14 18 l-1.5 6"></path>
+          <path class="rain-drop rain-drop3" stroke="var(--icon-rain-color)" stroke-width="1.5" stroke-linecap="round" d="m12 16 l-1.5 6"></path>
+        </symbol>
+        <symbol id="icon-thunderstorm" viewBox="0 0 24 24">
+          <path
+            class="cloud cloud-rainy"
+            d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"
+          ></path>
+          <polygon
+            points="13 11 10 15 13 15 11 19 14 13 11 13 13 11"
+            fill="var(--icon-lightning-color)"
+          ></polygon>
+        </symbol>
+        <symbol id="icon-snow" viewBox="0 0 24 24">
+          <path class="cloud cloud-snowy" d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
+          <path class="snowflake snowflake1" stroke="var(--icon-snow-color)" stroke-width="1.2" stroke-linecap="round" d="M10 16 v3 M10 17.5 l-1.5 1.5 M10 17.5 l1.5 1.5 M10 17.5 l-1.5 -1.5 M10 17.5 l1.5 -1.5"></path>
+          <path class="snowflake snowflake2" stroke="var(--icon-snow-color)" stroke-width="1.2" stroke-linecap="round" d="M14 18 v3 M14 19.5 l-1.5 1.5 M14 19.5 l1.5 1.5 M14 19.5 l-1.5 -1.5 M14 19.5 l1.5 -1.5"></path>
+          <path class="snowflake snowflake3" stroke="var(--icon-snow-color)" stroke-width="1.2" stroke-linecap="round" d="M12 15 v3 M12 16.5 l-1.5 1.5 M12 16.5 l1.5 1.5 M12 16.5 l-1.5 -1.5 M12 16.5 l1.5 -1.5"></path>
+        </symbol>
+        <symbol id="icon-mist" viewBox="0 0 24 24">
+          <path class="mist-line mist-line1" stroke="var(--icon-haze-color)" stroke-width="2" stroke-linecap="round" d="M4 12 L20 12"></path>
+          <path class="mist-line mist-line2" stroke="var(--icon-haze-color)" stroke-width="2" stroke-linecap="round" d="M6 16 L18 16"></path>
+          <path class="mist-line mist-line3" stroke="var(--icon-haze-color)" stroke-width="2" stroke-linecap="round" d="M8 20 L16 20"></path>
+        </symbol>
+        <symbol id="icon-bookmark-add" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
+        </symbol>
+        <symbol id="icon-bookmark-saved" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
+        </symbol>
+        <symbol id="icon-theme-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </symbol>
+        <symbol id="icon-theme-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </symbol>
+        <!-- Detail Icons -->
+        <symbol id="icon-humidity" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></symbol>
+        <symbol id="icon-wind" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></symbol>
+        <symbol id="icon-pressure" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/><path d="m12 12-4 4"/><path d="M16 8h-4V4"/></symbol>
+        <symbol id="icon-visibility" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8zm11 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></symbol>
+        <symbol id="icon-thermometer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></symbol>
+        <symbol id="icon-uv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/><path d="M12 15v-4"/><path d="m10 13 2 2 2-2"/></symbol>
+        <symbol id="icon-sunrise" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 18a5 5 0 0 0-10 0"/><line x1="12" y1="2" x2="12" y2="9"/><line x1="4.22" y1="10.22" x2="5.64" y2="11.64"/><line x1="1" y1="18" x2="3" y2="18"/><line x1="21" y1="18" x2="23" y2="18"/><line x1="18.36" y1="11.64" x2="19.78" y2="10.22"/><line x1="23" y1="22" x2="1" y2="22"/><polyline points="8 6 12 2 16 6"/></symbol>
+        <symbol id="icon-sunset" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 18a5 5 0 0 0-10 0"/><line x1="12" y1="9" x2="12" y2="2"/><line x1="4.22" y1="10.22" x2="5.64" y2="11.64"/><line x1="1" y1="18" x2="3" y2="18"/><line x1="21" y1="18" x2="23" y2="18"/><line x1="18.36" y1="11.64" x2="19.78" y2="10.22"/><line x1="23" y1="22" x2="1" y2="22"/><polyline points="16 5 12 9 8 5"/></symbol>
+        <symbol id="icon-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </symbol>
+        <symbol id="icon-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </symbol>
+        <!-- AQI Icons -->
+        <symbol id="icon-pm25" viewBox="0 0 24 24"><text x="50%" y="60%" dominant-baseline="middle" text-anchor="middle" font-size="10" font-weight="bold" fill="currentColor">PM₂.₅</text></symbol>
+        <symbol id="icon-pm10" viewBox="0 0 24 24"><text x="50%" y="60%" dominant-baseline="middle" text-anchor="middle" font-size="10" font-weight="bold" fill="currentColor">PM₁₀</text></symbol>
+        <symbol id="icon-o3" viewBox="0 0 24 24"><text x="50%" y="60%" dominant-baseline="middle" text-anchor="middle" font-size="12" font-weight="bold" fill="currentColor">O₃</text></symbol>
+        <symbol id="icon-no2" viewBox="0 0 24 24"><text x="50%" y="60%" dominant-baseline="middle" text-anchor="middle" font-size="12" font-weight="bold" fill="currentColor">NO₂</text></symbol>
+        <symbol id="icon-so2" viewBox="0 0 24 24"><text x="50%" y="60%" dominant-baseline="middle" text-anchor="middle" font-size="12" font-weight="bold" fill="currentColor">SO₂</text></symbol>
+        <symbol id="icon-co" viewBox="0 0 24 24"><text x="50%" y="60%" dominant-baseline="middle" text-anchor="middle" font-size="12" font-weight="bold" fill="currentColor">CO</text></symbol>
+        <!-- Feature Icons -->
+        <symbol id="icon-news" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2Z"></path><path d="M8 6h8"></path><path d="M8 10h8"></path><path d="M8 14h4"></path></symbol>
+        <symbol id="icon-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></symbol>
+        <symbol id="icon-history" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
+        </symbol>
+        <symbol id="icon-car" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <g transform="scale(0.9) translate(1.2, 1.2)">
+            <circle cx="7" cy="17" r="2" />
+            <circle cx="17" cy="17" r="2" />
+            <path d="M5 17h-2v-6l2 -5h9l4 5h1a2 2 0 0 1 2 2v4h-2m-4 0h-6" />
+          </g>
+        </symbol>
+        <symbol id="icon-agro" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12,19 C 6,17 3,10 12,2 C 21,10 18,17 12,19 Z M12,19 V22 M12,19 V4 M12,14 C 15,12 16,9 15,7"/>
+        </symbol>
+        <symbol id="icon-boat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 16 H 19 L 17 19 H 7 L 5 16 Z M 12 3 L 5 16 M 12 3 L 19 16 M 12 3 V 2 L 14 3 L 12 4 Z"/>
+        </symbol>
+        <symbol id="icon-tools" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+          <g transform="scale(0.9) translate(1.2, 1.2)">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+          </g>
+        </symbol>
+        <symbol id="icon-mountain" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m8 3 4 8 5-5 5 15H2L8 3z" />
+        </symbol>
+      </defs>
+    </svg>
+
+    <section id="home-page">
+      <div class="home-content">
+        <h1>AI Weather Forecasting</h1>
+        <p>
+          Your personal weather assistant, powered by cutting-edge AI. Get
+          accurate, 5-day forecasts for any city in the world.
+        </p>
+        <button id="get-started-btn">Get Started</button>
+      </div>
+    </section>
+    <main>
+      <header class="main-header">
+        <div class="header-content">
+          <h1>AI Weather Forecast</h1>
+          <p>Get a 5-day forecast for any city in the world</p>
+        </div>
+        <div class="header-actions">
+          <button id="add-location-btn" class="header-action-btn" aria-label="Add location" title="Add location">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
+
+          <div class="tools-menu-container">
+            <button id="tools-menu-btn" class="header-action-btn" aria-label="Open tools menu" title="Open tools menu">
+              <svg><use href="#icon-tools"></use></svg>
+            </button>
+            <div id="tools-dropdown" class="tools-dropdown">
+              <button id="dropdown-vacation-btn"><svg><use href="#icon-car"></use></svg>Vacation Planner</button>
+              <button id="dropdown-agro-btn"><svg><use href="#icon-agro"></use></svg>Agro Tips</button>
+              <button id="dropdown-coastal-btn"><svg><use href="#icon-boat"></use></svg>Coastal Info</button>
+              <button id="dropdown-hiker-btn"><svg><use href="#icon-mountain"></use></svg>Hiker/Trekker Mode</button>
+            </div>
+          </div>
+          
+          <button id="theme-toggle-btn" class="header-action-btn" aria-label="Toggle theme">
+            <svg class="theme-icon-light" width="24" height="24"><use href="#icon-theme-light"></use></svg>
+            <svg class="theme-icon-dark" width="24" height="24"><use href="#icon-theme-dark"></use></svg>
+          </button>
+        </div>
+      </header>
+      <div class="top-section-wrapper">
+        <div class="search-and-saved">
+          <section id="saved-locations-container"></section>
+          
+          <form id="weather-form" aria-labelledby="form-heading">
+            <div class="input-group">
+              <label for="city-input" class="sr-only">City</label>
+              <input
+                type="text"
+                id="city-input"
+                placeholder="E.g., San Francisco"
+                required
+                aria-label="City Name"
+                autocomplete="off"
+              />
+              <div id="city-suggestions" class="suggestions-container"></div>
+            </div>
+            <button type="submit" aria-label="Get Weather Forecast">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m22 2-7 20-4-9-9-4Z" />
+                <path d="m22 2-11 11" />
+              </svg>
+              <span>Get Forecast</span>
+            </button>
+          </form>
+
+          <div id="forecast-content" aria-live="polite">
+            <!-- Forecast content (welcome, loader, or results) is injected here -->
+          </div>
+          
+        </div>
+      </div>
+    </main>
+
+    <div id="location-modal" class="modal-overlay">
+      <div class="modal-content">
+        <h3>Location Services</h3>
+        <p>Please ensure your device's location services are enabled to use the app.</p>
+        <button id="modal-ok-btn">OK</button>
+      </div>
+    </div>
+
+    <div id="dashboard-modal" class="modal-overlay">
+      <div class="modal-content">
+        <button id="modal-close-btn" class="modal-close-btn" aria-label="Close settings">&times;</button>
+        <h3>Customize Dashboard</h3>
+        <p>Select the metrics you want to see.</p>
+        <div id="metrics-options">
+          <!-- Checkbox options are injected here -->
+        </div>
+        <button id="modal-save-btn">Save Preferences</button>
+      </div>
+    </div>
+    
+    <div id="add-location-modal" class="modal-overlay">
+      <div class="modal-content">
+        <button id="modal-close-add-btn" class="modal-close-btn" aria-label="Close add location dialog">&times;</button>
+        <h3>Add New Location</h3>
+        <form id="add-location-form">
+          <div class="input-wrapper">
+            <input type="text" id="add-city-input" placeholder="Enter city name" required autocomplete="off" />
+            <div id="add-city-suggestions" class="suggestions-container"></div>
+          </div>
+          <button type="submit">Add Location</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="vacation-modal" class="modal-overlay">
+      <div class="modal-content large">
+        <button id="vacation-modal-close-btn" class="modal-close-btn" aria-label="Close vacation planner">&times;</button>
+        <div id="vacation-form-container">
+          <h3>Vacation Planner</h3>
+          <p>Enter a destination and select your travel dates for a custom itinerary.</p>
+          <form id="vacation-form">
+            <div class="input-wrapper">
+              <input type="text" id="vacation-city-input" placeholder="E.g., Paris, France" required autocomplete="off" />
+              <div id="vacation-suggestions" class="suggestions-container"></div>
+            </div>
+            <div class="date-range-picker">
+                <div class="input-wrapper date-input-wrapper">
+                    <label for="vacation-start-date">Start Date</label>
+                    <input type="date" id="vacation-start-date" required />
+                </div>
+                <div class="input-wrapper duration-input-wrapper">
+                    <label for="vacation-duration">Duration (days)</label>
+                    <input type="number" id="vacation-duration" value="5" min="1" required />
+                </div>
+            </div>
+            <button type="submit">Plan My Trip</button>
+          </form>
+        </div>
+        <div id="vacation-plan-results" class="hidden">
+          <!-- Vacation plan results injected here -->
+        </div>
+      </div>
+    </div>
+
+    <div id="agro-modal" class="modal-overlay">
+      <div class="modal-content large">
+        <button id="agro-modal-close-btn" class="modal-close-btn" aria-label="Close agricultural tips">&times;</button>
+        <div id="agro-form-container">
+          <h3>Agricultural Tips</h3>
+          <p>Enter a location to get farming or gardening tips based on the weather.</p>
+          <form id="agro-form">
+            <div class="input-wrapper">
+              <input type="text" id="agro-city-input" placeholder="E.g., Central Valley, California" required autocomplete="off" />
+              <div id="agro-suggestions" class="suggestions-container"></div>
+            </div>
+            <button type="submit">Get Tips</button>
+          </form>
+        </div>
+        <div id="agro-tips-results" class="hidden">
+          <!-- Agro tips results injected here -->
+        </div>
+      </div>
+    </div>
+    
+    <div id="coastal-modal" class="modal-overlay">
+      <div class="modal-content large">
+        <button id="coastal-modal-close-btn" class="modal-close-btn" aria-label="Close coastal information">&times;</button>
+        <div id="coastal-form-container">
+          <h3>Coastal Information</h3>
+          <p>Enter a coastal location to get tide times, water temperature, and more.</p>
+          <form id="coastal-form">
+            <div class="input-wrapper">
+              <input type="text" id="coastal-city-input" placeholder="E.g., Santa Monica, California" required autocomplete="off" />
+              <div id="coastal-suggestions" class="suggestions-container"></div>
+            </div>
+            <button type="submit">Get Info</button>
+          </form>
+        </div>
+        <div id="coastal-info-results" class="hidden">
+          <!-- Coastal info results injected here -->
+        </div>
+      </div>
+    </div>
+
+    <div id="hiker-modal" class="modal-overlay">
+      <div class="modal-content large">
+        <button id="hiker-modal-close-btn" class="modal-close-btn" aria-label="Close Hiker/Trekker mode">&times;</button>
+        <div id="hiker-form-container">
+          <h3>Hiker/Trekker Mode</h3>
+          <p>Enter a mountain or trekking location for specialized weather info like wind chill and avalanche risk.</p>
+          <form id="hiker-form">
+            <div class="input-wrapper">
+              <input type="text" id="hiker-city-input" placeholder="E.g., Chamonix, France" required autocomplete="off" />
+              <div id="hiker-suggestions" class="suggestions-container"></div>
+            </div>
+            <button type="submit">Get Mountain Info</button>
+          </form>
+        </div>
+        <div id="hiker-info-results" class="hidden">
+          <!-- Hiker/Trekker info results injected here -->
+        </div>
+      </div>
+    </div>
+    
+    <div id="history-modal" class="modal-overlay">
+      <div class="modal-content">
+        <button id="history-modal-close-btn" class="modal-close-btn" aria-label="Close history modal">&times;</button>
+        <h3>Historical Weather</h3>
+        <form id="history-form">
+          <p>Select a date to see the weather for <strong id="history-city-name">your city</strong>.</p>
+          <input type="date" id="history-date-input" required />
+          <button type="submit">Get History</button>
+        </form>
+        <div id="history-results">
+          <!-- Historical weather results injected here -->
+        </div>
+      </div>
+    </div>
+
+    <div id="alert-notification-banner" class="hidden">
+      <p>Get notified about severe weather alerts for your area.</p>
+      <div class="banner-actions">
+        <button id="deny-alerts-btn">No, thanks</button>
+        <button id="allow-alerts-btn">Allow</button>
+      </div>
+    </div>
+
+    <div id="toast-container"></div>
+  </body>
+</html>
